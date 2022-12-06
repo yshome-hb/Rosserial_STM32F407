@@ -100,7 +100,7 @@ void debug_printf_init(unsigned int bound)
 	USART_Init(DEBUG_UART_DEV, &USART_InitStructure);
 
 	USART_Cmd(DEBUG_UART_DEV, ENABLE); 
-	USART_ClearFlag(DEBUG_UART_DEV, USART_FLAG_TC);  
+	USART_ClearFlag(DEBUG_UART_DEV, USART_FLAG_TC);
 }
 
 
