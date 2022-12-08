@@ -602,6 +602,11 @@
               <FileType>1</FileType>
               <FilePath>..\Drivers\src\usart.c</FilePath>
             </File>
+            <File>
+              <FileName>servo.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\src\servo.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

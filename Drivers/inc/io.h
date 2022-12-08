@@ -5,7 +5,8 @@
 
 typedef enum
 {
-    OUTPUT_LED_1, 
+    OUTPUT_LED_1,
+    OUTPUT_BUZZER,
 	OUTPUT_MAX,
 
 }io_output_num;

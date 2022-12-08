@@ -4,6 +4,9 @@
 #define OUTPUT_LED_1_GPIO			GPIOA
 #define OUTPUT_LED_1_PIN			GPIO_Pin_12
 
+#define OUTPUT_BUZZER_GPIO			GPIOA
+#define OUTPUT_BUZZER_PIN			GPIO_Pin_8
+
 typedef struct
 {
 	GPIO_TypeDef* gpio; 
@@ -24,8 +27,13 @@ void io_output_init(void)
 
 	io_output[OUTPUT_LED_1].gpio = OUTPUT_LED_1_GPIO;
 	io_output[OUTPUT_LED_1].pin = OUTPUT_LED_1_PIN;
-	io_output[OUTPUT_LED_1].type = GPIO_OType_PP;	
-	io_output[OUTPUT_LED_1].level = 1;		
+	io_output[OUTPUT_LED_1].type = GPIO_OType_PP;
+	io_output[OUTPUT_LED_1].level = 1;
+
+	io_output[OUTPUT_BUZZER].gpio = OUTPUT_BUZZER_GPIO;
+	io_output[OUTPUT_BUZZER].pin = OUTPUT_BUZZER_PIN;
+	io_output[OUTPUT_BUZZER].type = GPIO_OType_PP;
+	io_output[OUTPUT_BUZZER].level = 1;
 
 	for(uint16_t i = 0; i < OUTPUT_MAX; i++)
 	{

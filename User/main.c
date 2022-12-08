@@ -53,6 +53,7 @@ void start_task(void *pvParameters)
 	char send_str[10] = {'a', 'b', 'c', 'd'};
 	char recv_str[10];
 
+	servo_init();
 	io_output_init();
 	uart_port2_init(115200);
 	// uart_port_txdma_setup(&uart_port2, send_str, 10, uart_port1_send_complete);
