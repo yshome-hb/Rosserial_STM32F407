@@ -23,19 +23,42 @@
 
 /* Private variables ---------------------------------------------------------*/
 TaskHandle_t StartTask_Handler;	//Task handle
+uint8_t recv_data[32];
+uint16_t recv_len = 0;
 
 /* Private function prototypes -----------------------------------------------*/
 
 /* Private functions ---------------------------------------------------------*/
 
+void uart_port1_send_complete(void)
+{
+	io_output_set(OUTPUT_LED_1, 1);
+}
+
+void uart_port1_recv_data(void *pdata, uint16_t length)
+{
+	memcpy(recv_data, pdata, length);
+	recv_len = length;
+	io_output_set(OUTPUT_LED_1, recv_len);
+}
+
+
 //Start task task function
 void start_task(void *pvParameters)
 {
+	char send_str[10] = {'a', 'b', 'c', 'd'};
+	char recv_str[10];
+
 	io_output_init();
+	uart_port1_init(115200);
+	uart_port1_txdma_setup(send_str, 10, uart_port1_send_complete);
+	uart_port1_rxdma_setup(recv_str, 5, uart_port1_recv_data);
 
 	while(1)
 	{
 		LOG_INFO("hello world");
+		// uart_port1_put('c');
+		uart_port1_dma_send(send_str, 4);
 		//LEDa亮500ms,灭500ms
 		io_output_set(OUTPUT_LED_1, 0);
 		arch_msleep(500);

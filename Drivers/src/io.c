@@ -20,7 +20,7 @@ void io_output_init(void)
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);	
 
 	io_output[OUTPUT_LED_1].gpio = GPIOA;
-	io_output[OUTPUT_LED_1].pin = GPIO_Pin_8;
+	io_output[OUTPUT_LED_1].pin = GPIO_Pin_12;
 	io_output[OUTPUT_LED_1].type = GPIO_OType_PP;	
 	io_output[OUTPUT_LED_1].level = 1;		
 
