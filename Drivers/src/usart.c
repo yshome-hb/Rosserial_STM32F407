@@ -41,12 +41,35 @@ void PORT1_IRQ_Handler(void)
 {
 	if(USART_GetITStatus(PORT1_UART_DEV, USART_IT_IDLE) != RESET){
 		USART_ReceiveData(PORT1_UART_DEV);
-		DMA_Cmd(PORT1_RX_DMA_STREAM, DISABLE);
-		DMA_ClearFlag(PORT1_RX_DMA_STREAM, PORT1_RX_DMA_FLAG);
-		if(uart_port1.recv_cb)
-			uart_port1.recv_cb(uart_port1.dma_rx_addr, uart_port1.dma_rx_len - DMA_GetCurrDataCounter(PORT1_RX_DMA_STREAM));
-		DMA_SetCurrDataCounter(PORT1_RX_DMA_STREAM, uart_port1.dma_rx_len);
-		DMA_Cmd(PORT1_RX_DMA_STREAM, ENABLE);
+		if(DMA_GetCmdStatus(PORT1_RX_DMA_STREAM) == DISABLE){
+			if(uart_port1.recv_cb)
+				uart_port1.recv_cb(uart_port1.rx_addr, uart_port1.rx_cnt);
+			uart_port1.rx_cnt = 0;
+		}else{
+			DMA_Cmd(PORT1_RX_DMA_STREAM, DISABLE);
+			DMA_ClearFlag(PORT1_RX_DMA_STREAM, PORT1_RX_DMA_FLAG);
+			uart_port1.rx_cnt = uart_port1.rx_len - DMA_GetCurrDataCounter(PORT1_RX_DMA_STREAM);
+			if(uart_port1.recv_cb)
+				uart_port1.recv_cb(uart_port1.rx_addr, uart_port1.rx_cnt);
+			DMA_SetCurrDataCounter(PORT1_RX_DMA_STREAM, uart_port1.rx_len);
+			DMA_Cmd(PORT1_RX_DMA_STREAM, ENABLE);
+		}
+	}
+	else if(USART_GetITStatus(PORT1_UART_DEV, USART_IT_TC) != RESET){
+		USART_ClearITPendingBit(PORT1_UART_DEV, USART_IT_TC);
+		if(uart_port1.tx_cnt < uart_port1.tx_len){
+			USART_SendData(PORT1_UART_DEV, uart_port1.tx_addr[uart_port1.tx_cnt++]);
+		}else if(uart_port1.send_cb){
+			uart_port1.send_cb();
+		}
+	}
+	else if(USART_GetITStatus(PORT1_UART_DEV, USART_IT_RXNE) != RESET){
+		uart_port1.rx_addr[uart_port1.rx_cnt++] = USART_ReceiveData(PORT1_UART_DEV);
+		if(uart_port1.rx_cnt >= uart_port1.rx_len){
+			if(uart_port1.recv_cb)
+				uart_port1.recv_cb(uart_port1.rx_addr, uart_port1.rx_cnt);
+			uart_port1.rx_cnt = 0;
+		}
 	}
 }
 
@@ -64,9 +87,10 @@ void PORT1_RX_DMA_IRQ_Handler(void)
 {
 	if(DMA_GetFlagStatus(PORT1_RX_DMA_STREAM, PORT1_RX_DMA_FLAG) != RESET){
 		DMA_ClearFlag(PORT1_RX_DMA_STREAM, PORT1_RX_DMA_FLAG);
+		uart_port1.rx_cnt = uart_port1.rx_len - DMA_GetCurrDataCounter(PORT1_RX_DMA_STREAM);
 		if(uart_port1.recv_cb)
-			uart_port1.recv_cb(uart_port1.dma_rx_addr, uart_port1.dma_rx_len - DMA_GetCurrDataCounter(PORT1_RX_DMA_STREAM));
-		DMA_SetCurrDataCounter(PORT1_RX_DMA_STREAM, uart_port1.dma_rx_len);
+			uart_port1.recv_cb(uart_port1.rx_addr, uart_port1.rx_cnt);
+		DMA_SetCurrDataCounter(PORT1_RX_DMA_STREAM, uart_port1.rx_len);
 		DMA_Cmd(PORT1_RX_DMA_STREAM, ENABLE);
 	}
 }
@@ -112,12 +136,35 @@ void PORT2_IRQ_Handler(void)
 {
 	if(USART_GetITStatus(PORT2_UART_DEV, USART_IT_IDLE) != RESET){
 		USART_ReceiveData(PORT2_UART_DEV);
-		DMA_Cmd(PORT2_RX_DMA_STREAM, DISABLE);
-		DMA_ClearFlag(PORT2_RX_DMA_STREAM, PORT2_RX_DMA_FLAG);
-		if(uart_port2.recv_cb)
-			uart_port2.recv_cb(uart_port2.dma_rx_addr, uart_port2.dma_rx_len - DMA_GetCurrDataCounter(PORT2_RX_DMA_STREAM));
-		DMA_SetCurrDataCounter(PORT2_RX_DMA_STREAM, uart_port2.dma_rx_len);
-		DMA_Cmd(PORT2_RX_DMA_STREAM, ENABLE);
+		if(DMA_GetCmdStatus(PORT2_RX_DMA_STREAM) == DISABLE){
+			if(uart_port2.recv_cb)
+				uart_port2.recv_cb(uart_port2.rx_addr, uart_port2.rx_cnt);
+			uart_port2.rx_cnt = 0;
+		}else{
+			DMA_Cmd(PORT2_RX_DMA_STREAM, DISABLE);
+			DMA_ClearFlag(PORT2_RX_DMA_STREAM, PORT2_RX_DMA_FLAG);
+			uart_port2.rx_cnt = uart_port2.rx_len - DMA_GetCurrDataCounter(PORT2_RX_DMA_STREAM);
+			if(uart_port2.recv_cb)
+				uart_port2.recv_cb(uart_port2.rx_addr, uart_port2.rx_cnt);
+			DMA_SetCurrDataCounter(PORT2_RX_DMA_STREAM, uart_port2.rx_len);
+			DMA_Cmd(PORT2_RX_DMA_STREAM, ENABLE);
+		}
+	}
+	else if(USART_GetITStatus(PORT2_UART_DEV, USART_IT_TC) != RESET){
+		USART_ClearITPendingBit(PORT2_UART_DEV, USART_IT_TC);
+		if(uart_port2.tx_cnt < uart_port2.tx_len){
+			USART_SendData(PORT2_UART_DEV, uart_port2.tx_addr[uart_port2.tx_cnt++]);
+		}else if(uart_port2.send_cb){
+			uart_port2.send_cb();
+		}
+	}
+	else if(USART_GetITStatus(PORT2_UART_DEV, USART_IT_RXNE) != RESET){
+		uart_port2.rx_addr[uart_port2.rx_cnt++] = USART_ReceiveData(PORT2_UART_DEV);
+		if(uart_port2.rx_cnt >= uart_port2.rx_len){
+			if(uart_port2.recv_cb)
+				uart_port2.recv_cb(uart_port2.rx_addr, uart_port2.rx_cnt);
+			uart_port2.rx_cnt = 0;
+		}
 	}
 }
 
@@ -135,9 +182,10 @@ void PORT2_RX_DMA_IRQ_Handler(void)
 {
 	if(DMA_GetFlagStatus(PORT2_RX_DMA_STREAM, PORT2_RX_DMA_FLAG) != RESET){
 		DMA_ClearFlag(PORT2_RX_DMA_STREAM, PORT2_RX_DMA_FLAG);
+		uart_port2.rx_cnt = uart_port2.rx_len - DMA_GetCurrDataCounter(PORT2_RX_DMA_STREAM);
 		if(uart_port2.recv_cb)
-			uart_port2.recv_cb(uart_port2.dma_rx_addr, uart_port2.dma_rx_len - DMA_GetCurrDataCounter(PORT2_RX_DMA_STREAM));
-		DMA_SetCurrDataCounter(PORT2_RX_DMA_STREAM, uart_port2.dma_rx_len);
+			uart_port2.recv_cb(uart_port2.rx_addr, uart_port2.rx_cnt);
+		DMA_SetCurrDataCounter(PORT2_RX_DMA_STREAM, uart_port2.rx_len);
 		DMA_Cmd(PORT2_RX_DMA_STREAM, ENABLE);
 	}
 }
@@ -146,6 +194,7 @@ void PORT2_RX_DMA_IRQ_Handler(void)
 static void uart_port_setup(uart_port_handle_t *uart_port)
 {
 	USART_InitTypeDef USART_InitStructure;
+	NVIC_InitTypeDef NVIC_InitStructure;
 
 	/*Configure UART param*/
 	USART_StructInit(&USART_InitStructure);
@@ -157,15 +206,15 @@ static void uart_port_setup(uart_port_handle_t *uart_port)
 	USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;	
 	USART_Init(uart_port->uart_dev, &USART_InitStructure);
 
-	USART_Cmd(uart_port->uart_dev, ENABLE); 
-	USART_ClearFlag(uart_port->uart_dev, USART_FLAG_TC);
-
-	NVIC_InitTypeDef NVIC_InitStructure;
 	NVIC_InitStructure.NVIC_IRQChannel = uart_port->irq_num;
 	NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 9;
 	NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
 	NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
 	NVIC_Init(&NVIC_InitStructure);
+
+	USART_ClearFlag(uart_port->uart_dev, USART_FLAG_TC);
+
+	USART_Cmd(uart_port->uart_dev, ENABLE); 
 }
 
 void uart_port_deinit(uart_port_handle_t *uart_port)
@@ -217,8 +266,8 @@ void uart_port_txdma_setup(uart_port_handle_t *uart_port, void *addr, uint16_t s
 
 	USART_DMACmd(uart_port->uart_dev, USART_DMAReq_Tx, ENABLE);
 
-	uart_port->dma_tx_addr = (void *)addr;
-	uart_port->dma_tx_len = size;
+	uart_port->tx_addr = (uint8_t *)addr;
+	uart_port->tx_len = size;
 	uart_port->send_cb = send_cb;
 }
 
@@ -256,13 +305,17 @@ void uart_port_rxdma_setup(uart_port_handle_t *uart_port, void *addr, uint16_t s
 	DMA_Init(uart_port->dma_rx_stream, &DMA_InitStructure);
 	DMA_ITConfig(uart_port->dma_rx_stream, DMA_IT_TC, ENABLE);
 
+	USART_ClearITPendingBit(uart_port->uart_dev, USART_IT_RXNE);
+	USART_ITConfig(uart_port->uart_dev, USART_IT_RXNE, DISABLE);
 	USART_DMACmd(uart_port->uart_dev, USART_DMAReq_Rx, ENABLE);
 	DMA_Cmd(uart_port->dma_rx_stream, ENABLE);
 
+	USART_ClearITPendingBit(uart_port->uart_dev, USART_IT_IDLE);
 	USART_ITConfig(uart_port->uart_dev, USART_IT_IDLE, ENABLE);
 
-	uart_port->dma_rx_addr = (void *)addr;
-	uart_port->dma_rx_len = size;
+	uart_port->rx_addr = (uint8_t *)addr;
+	uart_port->rx_len = size;
+	uart_port2.rx_cnt = 0;
 	uart_port->recv_cb = recv_cb;
 }
 
@@ -272,16 +325,47 @@ void uart_port_put(uart_port_handle_t *uart_port, unsigned char c)
 	USART_SendData(uart_port->uart_dev, c);
 }
 
+void uart_port_send_it(uart_port_handle_t *uart_port, uint8_t *pdata, uint16_t length, uart_port_send_callback_t send_cb)
+{
+	if(DMA_GetCmdStatus(uart_port->dma_tx_stream) != DISABLE)
+		DMA_Cmd(uart_port->dma_tx_stream, DISABLE);
+
+	uart_port->send_cb = send_cb;
+	uart_port->tx_addr = (uint8_t *)pdata;
+	uart_port->tx_len = length;
+	uart_port->tx_cnt = 0; 
+	USART_ClearITPendingBit(uart_port->uart_dev, USART_IT_TC);
+	USART_ITConfig(uart_port->uart_dev, USART_IT_TC, ENABLE);
+	USART_SendData(uart_port->uart_dev, uart_port2.tx_addr[uart_port2.tx_cnt++]);
+}
+
 void uart_port_dma_send(uart_port_handle_t *uart_port, void *addr, uint16_t size)
 {
+	USART_ClearITPendingBit(uart_port->uart_dev, USART_IT_TC);
+	USART_ITConfig(uart_port->uart_dev, USART_IT_TC, DISABLE);
 	if(DMA_GetCmdStatus(uart_port->dma_tx_stream) != DISABLE)
 		return;
 	DMA_MemoryTargetConfig(uart_port->dma_tx_stream, (uint32_t)addr, DMA_Memory_0);
 	DMA_SetCurrDataCounter(uart_port->dma_tx_stream, size);
 	DMA_Cmd(uart_port->dma_tx_stream, ENABLE);
 
-	uart_port->dma_tx_addr = (void *)addr;
-	uart_port->dma_tx_len = size;
+	uart_port->tx_addr = (uint8_t *)addr;
+	uart_port->tx_len = size;
+}
+
+void uart_port_receive_it(uart_port_handle_t *uart_port, uint8_t *pdata, uint16_t length, uart_port_receive_callback_t recv_cb)
+{
+	if(DMA_GetCmdStatus(uart_port->dma_rx_stream) != DISABLE)
+		DMA_Cmd(uart_port->dma_rx_stream, DISABLE);
+
+	uart_port->recv_cb = recv_cb;
+	uart_port->rx_addr = (uint8_t *)pdata;
+	uart_port->rx_len = length;
+	uart_port->rx_cnt = 0; 
+	USART_ClearITPendingBit(uart_port->uart_dev, USART_IT_RXNE);
+	USART_ITConfig(uart_port->uart_dev, USART_IT_RXNE, ENABLE);
+	USART_ClearITPendingBit(uart_port->uart_dev, USART_IT_IDLE);
+	USART_ITConfig(uart_port->uart_dev, USART_IT_IDLE, ENABLE);
 }
 
 

@@ -13,6 +13,7 @@
 #include "arch_init.h"
 #include "arch_define.h"
 #include "io.h"
+#include "usart.h"
 
 /* Private define ------------------------------------------------------------*/
 #define START_TASK_PRIO		1	//Task priority
@@ -35,11 +36,14 @@ void uart_port1_send_complete(void)
 	io_output_set(OUTPUT_LED_1, 1);
 }
 
-void uart_port1_recv_data(void *pdata, uint16_t length)
+void uart_port1_recv_data(uint8_t *pdata, uint16_t length)
 {
 	memcpy(recv_data, pdata, length);
 	recv_len = length;
-	io_output_set(OUTPUT_LED_1, recv_len);
+	if(length < 5)
+		io_output_set(OUTPUT_LED_1, 0);
+	else
+		io_output_set(OUTPUT_LED_1, 1);
 }
 
 
@@ -50,15 +54,16 @@ void start_task(void *pvParameters)
 	char recv_str[10];
 
 	io_output_init();
-	uart_port1_init(115200);
-	uart_port1_txdma_setup(send_str, 10, uart_port1_send_complete);
-	uart_port1_rxdma_setup(recv_str, 5, uart_port1_recv_data);
+	uart_port2_init(115200);
+	// uart_port_txdma_setup(&uart_port2, send_str, 10, uart_port1_send_complete);
+	// uart_port_rxdma_setup(&uart_port2, recv_str, 5, uart_port1_recv_data);
+	uart_port_receive_it(&uart_port2, recv_str, 5, uart_port1_recv_data);
 
 	while(1)
 	{
 		LOG_INFO("hello world");
-		// uart_port1_put('c');
-		uart_port1_dma_send(send_str, 4);
+		uart_port_send_it(&uart_port2, send_str, 4, uart_port1_send_complete);
+		// uart_port_dma_send(&uart_port2, send_str, 4);
 		//LEDa亮500ms,灭500ms
 		io_output_set(OUTPUT_LED_1, 0);
 		arch_msleep(500);
