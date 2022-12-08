@@ -1,6 +1,9 @@
 #include "stm32f4xx.h" 
 #include "io.h"
 
+#define OUTPUT_LED_1_GPIO			GPIOA
+#define OUTPUT_LED_1_PIN			GPIO_Pin_12
+
 typedef struct
 {
 	GPIO_TypeDef* gpio; 
@@ -8,10 +11,10 @@ typedef struct
 	GPIOOType_TypeDef type;
 	uint8_t level;
 	
-}IO_Output_t;
+}io_output_t;
 
 
-static IO_Output_t io_output[OUTPUT_MAX] = {0};
+static io_output_t io_output[OUTPUT_MAX] = {0};
 
 void io_output_init(void)
 {	
@@ -19,8 +22,8 @@ void io_output_init(void)
 
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);	
 
-	io_output[OUTPUT_LED_1].gpio = GPIOA;
-	io_output[OUTPUT_LED_1].pin = GPIO_Pin_12;
+	io_output[OUTPUT_LED_1].gpio = OUTPUT_LED_1_GPIO;
+	io_output[OUTPUT_LED_1].pin = OUTPUT_LED_1_PIN;
 	io_output[OUTPUT_LED_1].type = GPIO_OType_PP;	
 	io_output[OUTPUT_LED_1].level = 1;		
 
