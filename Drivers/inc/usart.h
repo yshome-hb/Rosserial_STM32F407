@@ -36,9 +36,6 @@ typedef struct {
 
 } uart_port_handle_t;
 
-extern uart_port_handle_t uart_port1;
-extern uart_port_handle_t uart_port2;
-
 void uart_port_deinit(uart_port_handle_t *uart_port);
 void uart_port_txdma_setup(uart_port_handle_t *uart_port, void *addr, uint16_t size, uart_port_send_callback_t send_cb);
 void uart_port_rxdma_setup(uart_port_handle_t *uart_port, void *addr, uint16_t size, uart_port_receive_callback_t recv_cb);
@@ -47,8 +44,8 @@ void uart_port_send_it(uart_port_handle_t *uart_port, uint8_t *pdata, uint16_t l
 void uart_port_dma_send(uart_port_handle_t *uart_port, void *addr, uint16_t size);
 void uart_port_receive_it(uart_port_handle_t *uart_port, uint8_t *pdata, uint16_t length, uart_port_receive_callback_t recv_cb);
 
-void uart_port1_init(uint32_t bound);
-void uart_port2_init(uint32_t bound);
+uart_port_handle_t *uart_port1_init(uint32_t bound);
+uart_port_handle_t *uart_port2_init(uint32_t bound);
 
 #ifdef __cplusplus
 }

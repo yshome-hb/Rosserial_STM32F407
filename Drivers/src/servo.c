@@ -2,13 +2,13 @@
 #include "servo.h"
 
 /**************** SERVO defines ****************/
-#define SERVO_TIM_DEV                  	TIM14
-#define SERVO_TIM_RCC                  	RCC_APB1Periph_TIM14
-#define SERVO_TIM_IRQn                 	TIM8_TRG_COM_TIM14_IRQn
-#define SERVO_IRQ_Handler               TIM8_TRG_COM_TIM14_IRQHandler
+#define SERVO_TIM_DEV			TIM14
+#define SERVO_TIM_RCC			RCC_APB1Periph_TIM14
+#define SERVO_TIM_IRQn			TIM8_TRG_COM_TIM14_IRQn
+#define SERVO_IRQ_Handler		TIM8_TRG_COM_TIM14_IRQHandler
 
-#define SERVO_TIM_PERIOD				2550 // us
-#define SERVO_TIM_PRESCALER				( SystemCoreClock / (2 * 1000000) - 1)
+#define SERVO_TIM_PERIOD		2550 // us
+#define SERVO_TIM_PRESCALER		( SystemCoreClock / (2 * 1000000) - 1)
 
 #define SERVO_GPIO_RCC			( RCC_AHB1Periph_GPIOB | RCC_AHB1Periph_GPIOC )
 

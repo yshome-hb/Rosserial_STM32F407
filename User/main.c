@@ -14,6 +14,7 @@
 #include "arch_define.h"
 #include "io.h"
 #include "usart.h"
+#include "i2c_master.h"
 
 /* Private define ------------------------------------------------------------*/
 #define START_TASK_PRIO		1	//Task priority
@@ -52,18 +53,23 @@ void start_task(void *pvParameters)
 {
 	char send_str[10] = {'a', 'b', 'c', 'd'};
 	char recv_str[10];
+	char i2c_regs[10];
 
 	servo_init();
 	io_output_init();
-	uart_port2_init(115200);
-	// uart_port_txdma_setup(&uart_port2, send_str, 10, uart_port1_send_complete);
-	// uart_port_rxdma_setup(&uart_port2, recv_str, 5, uart_port1_recv_data);
-	uart_port_receive_it(&uart_port2, recv_str, 5, uart_port1_recv_data);
+	uart_port_handle_t *uart_port = uart_port2_init(115200);
+	i2c_master_handle_t *i2c_master = i2c_master2_init(100000);
+	// uart_port_txdma_setup(uart_port, send_str, 10, uart_port1_send_complete);
+	// uart_port_rxdma_setup(uart_port, recv_str, 5, uart_port1_recv_data);
+	uart_port_receive_it(uart_port, recv_str, 5, uart_port1_recv_data);
+	servo_attach(0, 500);
+	servo_attach(1, 2000);
 
 	while(1)
 	{
 		LOG_INFO("hello world");
-		uart_port_send_it(&uart_port2, send_str, 4, uart_port1_send_complete);
+		i2c_master_readReg(i2c_master, 0xD0, 0x75, i2c_regs, 1, 0);
+		uart_port_send_it(uart_port, send_str, 4, uart_port1_send_complete);
 		// uart_port_dma_send(&uart_port2, send_str, 4);
 		//LEDa亮500ms,灭500ms
 		io_output_set(OUTPUT_LED_1, 0);

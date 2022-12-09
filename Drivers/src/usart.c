@@ -36,6 +36,8 @@
 #define PORT1_RX_DMA_FLAG				DMA_FLAG_TCIF1
 #define PORT1_RX_DMA_IRQ_Handler        DMA1_Stream1_IRQHandler
 
+static uart_port_handle_t uart_port1;
+
 /*IRQ Handler*/
 void PORT1_IRQ_Handler(void)
 {
@@ -130,6 +132,8 @@ void PORT1_RX_DMA_IRQ_Handler(void)
 #define PORT2_RX_DMA_IRQn               DMA1_Stream5_IRQn
 #define PORT2_RX_DMA_FLAG				DMA_FLAG_TCIF5
 #define PORT2_RX_DMA_IRQ_Handler        DMA1_Stream5_IRQHandler
+
+static uart_port_handle_t uart_port2;
 
 /*IRQ Handler*/
 void PORT2_IRQ_Handler(void)
@@ -226,6 +230,8 @@ void uart_port_deinit(uart_port_handle_t *uart_port)
 	DMA_ClearFlag(uart_port->dma_tx_stream, uart_port->dma_tx_irq_flag);
 	DMA_ClearFlag(uart_port->dma_rx_stream, uart_port->dma_rx_irq_flag);
 	USART_ITConfig(uart_port->uart_dev, USART_IT_IDLE, DISABLE);
+	USART_ITConfig(uart_port->uart_dev, USART_IT_TC, DISABLE);
+	USART_ITConfig(uart_port->uart_dev, USART_IT_RXNE, DISABLE);
 	USART_Cmd(uart_port->uart_dev, DISABLE);
 	USART_DeInit(uart_port->uart_dev);
 }
@@ -368,10 +374,7 @@ void uart_port_receive_it(uart_port_handle_t *uart_port, uint8_t *pdata, uint16_
 	USART_ITConfig(uart_port->uart_dev, USART_IT_IDLE, ENABLE);
 }
 
-
-uart_port_handle_t uart_port1;
-
-void uart_port1_init(uint32_t bound)
+uart_port_handle_t *uart_port1_init(uint32_t bound)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	
@@ -411,12 +414,10 @@ void uart_port1_init(uint32_t bound)
 	uart_port1.dma_tx_irq_flag = PORT1_RX_DMA_FLAG;
 
 	uart_port_setup(&uart_port1);
+	return &uart_port1;
 }
 
-
-uart_port_handle_t uart_port2;
-
-void uart_port2_init(uint32_t bound)
+uart_port_handle_t *uart_port2_init(uint32_t bound)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	
@@ -456,4 +457,5 @@ void uart_port2_init(uint32_t bound)
 	uart_port2.dma_tx_irq_flag = PORT2_RX_DMA_FLAG;
 
 	uart_port_setup(&uart_port2);
+	return &uart_port2;
 }
