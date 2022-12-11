@@ -3,11 +3,14 @@
 
 #include "stm32f4xx.h" 
 
-extern void delay_init(void);
-extern unsigned int millis(void);
-extern void delay_ms(unsigned int nms);
-extern void delay_us(unsigned int nus);
+#define TIMER_DIFF(a, b)     ((uint32_t)((a)-(b)))
 
+extern void delay_init(void);
+extern void delay_ms(unsigned int ms);
+extern void delay_us(unsigned int us);
+
+extern unsigned int sys_time_ms(void);
+extern unsigned int sys_time_elapsed(unsigned int last);
 
 #endif
 

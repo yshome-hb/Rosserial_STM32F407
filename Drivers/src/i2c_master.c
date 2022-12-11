@@ -1,4 +1,5 @@
 
+#include "delay.h"
 #include "i2c_master.h"
 
 /**************** Master1 defines ****************/
@@ -41,6 +42,14 @@ static i2c_master_handle_t i2c_master1;
 
 static i2c_master_handle_t i2c_master2;
 
+#define i2c_wait_event_until_timeout(dev, event, timeout) {	\
+	uint32_t start = sys_time_ms();					\
+	while(!I2C_CheckEvent(dev, event)){				\
+		if(sys_time_elapsed(start) > timeout)		\
+			return I2C_STATUS_TIMEOUT;				\
+		delay_ms(10);								\
+	}												\
+}
 
 static void i2c_master_setup(i2c_master_handle_t *i2c_master)
 {
@@ -65,31 +74,31 @@ void i2c_master_deinit(i2c_master_handle_t *i2c_master)
 	I2C_DeInit(i2c_master->i2c_dev);
 }
 
-i2c_status_t i2c_master_transmit(i2c_master_handle_t *i2c_master, uint8_t address, const uint8_t *pdata, uint16_t length, uint16_t timeout)
+i2c_status_t i2c_master_transmit(i2c_master_handle_t *i2c_master, uint8_t address, const uint8_t *pdata, uint16_t length, uint32_t timeout)
 {
 	I2C_GenerateSTART(i2c_master->i2c_dev, ENABLE);
-	while(!I2C_CheckEvent(i2c_master->i2c_dev, I2C_EVENT_MASTER_MODE_SELECT));
+	i2c_wait_event_until_timeout(i2c_master->i2c_dev, I2C_EVENT_MASTER_MODE_SELECT, timeout);
 
 	I2C_Send7bitAddress(i2c_master->i2c_dev, address, I2C_Direction_Transmitter);
-	while(!I2C_CheckEvent(i2c_master->i2c_dev, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
+	i2c_wait_event_until_timeout(i2c_master->i2c_dev, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED, timeout);
 
 	while(length--){
 		I2C_SendData(i2c_master->i2c_dev, *pdata);
 		pdata++;
-		while(!I2C_CheckEvent(i2c_master->i2c_dev, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
+		i2c_wait_event_until_timeout(i2c_master->i2c_dev, I2C_EVENT_MASTER_BYTE_TRANSMITTED, timeout);
 	}
 
 	I2C_GenerateSTOP(i2c_master->i2c_dev, ENABLE);
-	return 0;
+	return I2C_STATUS_SUCCESS;
 }
 
-i2c_status_t i2c_master_receive(i2c_master_handle_t *i2c_master, uint8_t address, uint8_t *pdata, uint16_t length, uint16_t timeout)
+i2c_status_t i2c_master_receive(i2c_master_handle_t *i2c_master, uint8_t address, uint8_t *pdata, uint16_t length, uint32_t timeout)
 {
 	I2C_GenerateSTART(i2c_master->i2c_dev, ENABLE);
-	while(!I2C_CheckEvent(i2c_master->i2c_dev, I2C_EVENT_MASTER_MODE_SELECT));
+	i2c_wait_event_until_timeout(i2c_master->i2c_dev, I2C_EVENT_MASTER_MODE_SELECT, timeout);
 
 	I2C_Send7bitAddress(i2c_master->i2c_dev, address, I2C_Direction_Receiver);
-	while(!I2C_CheckEvent(i2c_master->i2c_dev, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED));
+	i2c_wait_event_until_timeout(i2c_master->i2c_dev, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED, timeout);
 
 	while(length--){
 		if(length == 0){
@@ -97,52 +106,52 @@ i2c_status_t i2c_master_receive(i2c_master_handle_t *i2c_master, uint8_t address
 			I2C_GenerateSTOP(i2c_master->i2c_dev, ENABLE);
     	}
 
-		while(!I2C_CheckEvent(i2c_master->i2c_dev, I2C_EVENT_MASTER_BYTE_RECEIVED));
+		i2c_wait_event_until_timeout(i2c_master->i2c_dev, I2C_EVENT_MASTER_BYTE_RECEIVED, timeout);
       	*pdata = I2C_ReceiveData(i2c_master->i2c_dev);
       	pdata++;
 	}
 
 	I2C_AcknowledgeConfig(i2c_master->i2c_dev, ENABLE);
-	return 0;
+	return I2C_STATUS_SUCCESS;
 }
 
-i2c_status_t i2c_master_writeReg(i2c_master_handle_t *i2c_master, uint8_t address, uint8_t reg, const uint8_t *pdata, uint16_t length, uint16_t timeout)
+i2c_status_t i2c_master_writeReg(i2c_master_handle_t *i2c_master, uint8_t address, uint8_t reg, const uint8_t *pdata, uint16_t length, uint32_t timeout)
 {
 	I2C_GenerateSTART(i2c_master->i2c_dev, ENABLE);
-	while(!I2C_CheckEvent(i2c_master->i2c_dev, I2C_EVENT_MASTER_MODE_SELECT));
+	i2c_wait_event_until_timeout(i2c_master->i2c_dev, I2C_EVENT_MASTER_MODE_SELECT, timeout);
 
 	I2C_Send7bitAddress(i2c_master->i2c_dev, address, I2C_Direction_Transmitter);
-	while(!I2C_CheckEvent(i2c_master->i2c_dev, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
+	i2c_wait_event_until_timeout(i2c_master->i2c_dev, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED, timeout);
 
 	I2C_SendData(i2c_master->i2c_dev, reg);
-	while(!I2C_CheckEvent(i2c_master->i2c_dev, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
+	i2c_wait_event_until_timeout(i2c_master->i2c_dev, I2C_EVENT_MASTER_BYTE_TRANSMITTED, timeout);
 
 	while(length--){
 		I2C_SendData(i2c_master->i2c_dev, *pdata);
 		pdata++;
-		while(!I2C_CheckEvent(i2c_master->i2c_dev, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
+		i2c_wait_event_until_timeout(i2c_master->i2c_dev, I2C_EVENT_MASTER_BYTE_TRANSMITTED, timeout);
 	}
 
 	I2C_GenerateSTOP(i2c_master->i2c_dev, ENABLE);
-	return 0;
+	return I2C_STATUS_SUCCESS;
 }
 
-i2c_status_t i2c_master_readReg(i2c_master_handle_t *i2c_master, uint8_t address, uint8_t reg, uint8_t *pdata, uint16_t length, uint16_t timeout)
+i2c_status_t i2c_master_readReg(i2c_master_handle_t *i2c_master, uint8_t address, uint8_t reg, uint8_t *pdata, uint16_t length, uint32_t timeout)
 {
 	I2C_GenerateSTART(i2c_master->i2c_dev, ENABLE);
-	while(!I2C_CheckEvent(i2c_master->i2c_dev, I2C_EVENT_MASTER_MODE_SELECT));
+	i2c_wait_event_until_timeout(i2c_master->i2c_dev, I2C_EVENT_MASTER_MODE_SELECT, timeout);
 
 	I2C_Send7bitAddress(i2c_master->i2c_dev, address, I2C_Direction_Transmitter);
-	while(!I2C_CheckEvent(i2c_master->i2c_dev, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
+	i2c_wait_event_until_timeout(i2c_master->i2c_dev, I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED, timeout);
 
 	I2C_SendData(i2c_master->i2c_dev, reg);
-	while(!I2C_CheckEvent(i2c_master->i2c_dev, I2C_EVENT_MASTER_BYTE_TRANSMITTED));
+	i2c_wait_event_until_timeout(i2c_master->i2c_dev, I2C_EVENT_MASTER_BYTE_TRANSMITTED, timeout);
 
 	I2C_GenerateSTART(i2c_master->i2c_dev, ENABLE);
-	while(!I2C_CheckEvent(i2c_master->i2c_dev, I2C_EVENT_MASTER_MODE_SELECT));
+	i2c_wait_event_until_timeout(i2c_master->i2c_dev, I2C_EVENT_MASTER_MODE_SELECT, timeout);
 
 	I2C_Send7bitAddress(i2c_master->i2c_dev, address, I2C_Direction_Receiver);
-	while(!I2C_CheckEvent(i2c_master->i2c_dev, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED));
+	i2c_wait_event_until_timeout(i2c_master->i2c_dev, I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED, timeout);
 
 	while(length--){
 		if(length == 0){
@@ -150,13 +159,13 @@ i2c_status_t i2c_master_readReg(i2c_master_handle_t *i2c_master, uint8_t address
 			I2C_GenerateSTOP(i2c_master->i2c_dev, ENABLE);
     	}
 
-		while(!I2C_CheckEvent(i2c_master->i2c_dev, I2C_EVENT_MASTER_BYTE_RECEIVED));
+		i2c_wait_event_until_timeout(i2c_master->i2c_dev, I2C_EVENT_MASTER_BYTE_RECEIVED, timeout);
       	*pdata = I2C_ReceiveData(i2c_master->i2c_dev);
       	pdata++;
 	}
 
 	I2C_AcknowledgeConfig(i2c_master->i2c_dev, ENABLE);
-	return 0;
+	return I2C_STATUS_SUCCESS;
 }
 
 i2c_master_handle_t *i2c_master1_init(uint32_t clock)

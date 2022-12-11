@@ -9,22 +9,16 @@ void delay_init(void)
 	fac_us = SystemCoreClock / 1000000;
 }
 
-// Return system uptime in 1milliseconds (rollover in 49 days)
-unsigned int millis(void)
+
+void delay_ms(unsigned int ms)
 {
-	return (xTaskGetTickCount() / portTICK_PERIOD_MS);
+	vTaskDelay(ms / portTICK_PERIOD_MS);			
 }
 
 
-void delay_ms(unsigned int nms)
+void delay_us(unsigned int us)
 {
-	vTaskDelay(nms / portTICK_PERIOD_MS);			
-}
-
-
-void delay_us(unsigned int nus)
-{
-	unsigned int ticks = nus * fac_us;
+	unsigned int ticks = us * fac_us;
 	unsigned int reload = SysTick->LOAD;
 	unsigned int told, tnow, tcnt = 0;
 
@@ -39,6 +33,19 @@ void delay_us(unsigned int nus)
 			told = tnow;
 		}
 	}	
+}
+
+
+// Return system uptime in 1milliseconds (rollover in 49 days)
+unsigned int sys_time_ms(void)
+{
+	return (xTaskGetTickCount() / portTICK_PERIOD_MS);
+}
+
+
+unsigned int sys_time_elapsed(unsigned int last)
+{
+	return TIMER_DIFF(sys_time_ms(), last);
 }
 
 
