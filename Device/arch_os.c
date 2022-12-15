@@ -49,7 +49,7 @@ void arch_os_async_call(void(* callback)(void *), void *value, unsigned int dela
 
     async_cb->cb = callback;
     async_cb->value = value;
-    async_cb->time = sys_time_ms() + delay;
+    async_cb->time = system_time_get() + delay;
 
 	list_add(&async_cb->list, &async_list);   
 }
@@ -58,7 +58,7 @@ void arch_os_async_proc()
 {
 	struct list_head *pos, *q;    
     os_async_callback_t *tmp = NULL;
-    uint32_t curr_time = sys_time_ms();
+    uint32_t curr_time = system_time_get();
 
 	list_for_each_safe(pos, q, &async_list) {
 		tmp = list_entry(pos, os_async_callback_t, list);

@@ -17,7 +17,7 @@ extern "C" {
 #define MAX_SERVOS          SERVOS_PER_TIMER
 
 typedef struct {
-    GPIO_TypeDef* gpio; 
+    GPIO_TypeDef* port; 
     uint16_t pin;
     bool enable;
     uint16_t ticks;

@@ -7,30 +7,23 @@
   ******************************************************************************
   */ 
 
-/* Includes ------------------------------------------------------------------*/
 #include "FreeRTOS.h"
 #include "task.h"
 #include "arch_init.h"
 #include "arch_define.h"
 #include "io.h"
 #include "usart.h"
-#include "i2c_master.h"
 
-/* Private define ------------------------------------------------------------*/
 #define START_TASK_PRIO		1	//Task priority
+#define START_STK_SIZE 		256 //Task stack size
+TaskHandle_t StartTask_Handler;	//Task handle 
 
-#define START_STK_SIZE 		256 //Task stack size 
+#define TASK1_PRIO          2   //Task priority
+#define TASK1_STK_SIZE      128 //Task stack size
+TaskHandle_t Task1Task_Handler; //Task handle 
 
-/* Extern variables ----------------------------------------------------------*/
-
-/* Private variables ---------------------------------------------------------*/
-TaskHandle_t StartTask_Handler;	//Task handle
 uint8_t recv_data[32];
 uint16_t recv_len = 0;
-
-/* Private function prototypes -----------------------------------------------*/
-
-/* Private functions ---------------------------------------------------------*/
 
 void uart_port1_send_complete(void)
 {
@@ -49,16 +42,15 @@ void uart_port1_recv_data(uint8_t *pdata, uint16_t length)
 
 
 //Start task task function
-void start_task(void *pvParameters)
+void task1(void *pvParameters)
 {
 	char send_str[10] = {'a', 'b', 'c', 'd'};
 	char recv_str[10];
-	char i2c_regs[10];
 
 	servo_init();
 	io_output_init();
 	uart_port_handle_t *uart_port = uart_port2_init(115200);
-	i2c_master_handle_t *i2c_master = i2c_master2_init(100000);
+	// i2c_master_handle_t *i2c_master = i2c_master2_init(400000);
 	// uart_port_txdma_setup(uart_port, send_str, 10, uart_port1_send_complete);
 	// uart_port_rxdma_setup(uart_port, recv_str, 5, uart_port1_recv_data);
 	uart_port_receive_it(uart_port, recv_str, 5, uart_port1_recv_data);
@@ -68,15 +60,35 @@ void start_task(void *pvParameters)
 	while(1)
 	{
 		LOG_INFO("hello world");
-		i2c_master_readReg(i2c_master, 0xD0, 0x75, i2c_regs, 1, 0);
+		// i2c_master_readReg(i2c_master, 0xD0, 0x75, i2c_regs, 1, 1000);
 		uart_port_send_it(uart_port, send_str, 4, uart_port1_send_complete);
 		// uart_port_dma_send(&uart_port2, send_str, 4);
-		//LEDa‰∫Æ500ms,ÁÅ≠500ms
+		//LEDa¡¡500ms,√500ms
 		io_output_set(OUTPUT_LED_1, 0);
 		arch_msleep(500);
 		io_output_set(OUTPUT_LED_1, 1);
 		arch_msleep(500);
 	}
+}
+
+/**
+ * @brief       start_task
+ * @param       pvParameters : ¥´»Î≤Œ ˝(Œ¥”√µΩ)
+ * @retval      Œﬁ
+ */
+void start_task(void *pvParameters)
+{
+    taskENTER_CRITICAL();           /* Ω¯»Î¡ŸΩÁ«¯ */
+    /* ¥¥Ω®»ŒŒÒ1 */
+    xTaskCreate((TaskFunction_t )task1,
+                (const char*    )"task1",
+                (uint16_t       )TASK1_STK_SIZE,
+                (void*          )NULL,
+                (UBaseType_t    )TASK1_PRIO,
+                (TaskHandle_t*  )&Task1Task_Handler);
+
+    vTaskDelete(StartTask_Handler); /* …æ≥˝ø™ º»ŒŒÒ */
+    taskEXIT_CRITICAL();            /* ÕÀ≥ˆ¡ŸΩÁ«¯ */
 }
 
 int main(void)
@@ -93,23 +105,3 @@ int main(void)
 
 	vTaskStartScheduler();  //Enables task scheduling
 }
-
-
-#ifdef  USE_FULL_ASSERT
-/**
-  * @brief  Reports the name of the source file and the source line number
-  *         where the assert_param error has occurred.
-  * @param  file: pointer to the source file name
-  * @param  line: assert_param error line source number
-  * @retval None
-  */
-void assert_failed(uint8_t* file, uint32_t line)
-{
-  /* User can add his own implementation to report the file name and line number,
-     ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
-
-  /* Infinite loop */
-  while (1)
-  {}
-}
-#endif

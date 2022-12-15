@@ -37,6 +37,7 @@
 //#include <unistd.h>
 #include <ctype.h>
 
+#include "system.h"
 #include "delay.h"
 #include "debug.h"
 #include "user_config.h" /* introduce USER_OS_ENABLE macro */
