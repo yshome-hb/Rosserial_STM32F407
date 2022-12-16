@@ -14,6 +14,7 @@
 #include "io.h"
 #include "usart.h"
 #include "i2c_master.h"
+#include "mpu6050.h"
 
 #define START_TASK_PRIO		1	//Task priority
 #define START_STK_SIZE 		256 //Task stack size
@@ -47,7 +48,9 @@ void task1(void *pvParameters)
 {
 	char send_str[10] = {'a', 'b', 'c', 'd'};
 	char recv_str[10];
-	char i2c_regs[10];
+	int16_t acc_x;
+	int16_t acc_y;
+	int16_t acc_z;
 
 	servo_init();
 	io_output_init();
@@ -60,13 +63,21 @@ void task1(void *pvParameters)
 	servo_attach(0, 500);
 	servo_attach(1, 2000);
 
+	MPU6050_initialize();
+
 	while(1)
 	{
-		LOG_INFO("hello world");
-		I2C_readByte(0xD0, 0x75, i2c_regs);
+
+		// I2C_readByte(0xD0, 0x75, i2c_regs);
+		acc_x = MPU6050_getAccelerationX();
+		acc_y = MPU6050_getAccelerationY();
+		acc_z = MPU6050_getAccelerationZ();
+
+		LOG_INFO("hello world %d %d %d", acc_x, acc_y, acc_z);
+
 		// uart_port_send_it(uart_port, send_str, 4, uart_port1_send_complete);
 		// uart_port_dma_send(&uart_port2, send_str, 4);
-		//LEDaÁÁ500ms,Ãð500ms
+		//LEDaï¿½ï¿½500ms,ï¿½ï¿½500ms
 		io_output_set(OUTPUT_LED_1, 0);
 		arch_msleep(500);
 		io_output_set(OUTPUT_LED_1, 1);
@@ -76,13 +87,13 @@ void task1(void *pvParameters)
 
 /**
  * @brief       start_task
- * @param       pvParameters : ´«Èë²ÎÊý(Î´ÓÃµ½)
- * @retval      ÎÞ
+ * @param       pvParameters : ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½(Î´ï¿½Ãµï¿½)
+ * @retval      ï¿½ï¿½
  */
 void start_task(void *pvParameters)
 {
-    taskENTER_CRITICAL();           /* ½øÈëÁÙ½çÇø */
-    /* ´´½¨ÈÎÎñ1 */
+    taskENTER_CRITICAL();           /* ï¿½ï¿½ï¿½ï¿½ï¿½Ù½ï¿½ï¿½ï¿½ */
+    /* ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½1 */
     xTaskCreate((TaskFunction_t )task1,
                 (const char*    )"task1",
                 (uint16_t       )TASK1_STK_SIZE,
@@ -90,8 +101,8 @@ void start_task(void *pvParameters)
                 (UBaseType_t    )TASK1_PRIO,
                 (TaskHandle_t*  )&Task1Task_Handler);
 
-    vTaskDelete(StartTask_Handler); /* É¾³ý¿ªÊ¼ÈÎÎñ */
-    taskEXIT_CRITICAL();            /* ÍË³öÁÙ½çÇø */
+    vTaskDelete(StartTask_Handler); /* É¾ï¿½ï¿½ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ */
+    taskEXIT_CRITICAL();            /* ï¿½Ë³ï¿½ï¿½Ù½ï¿½ï¿½ï¿½ */
 }
 
 int main(void)
