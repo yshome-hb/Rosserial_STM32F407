@@ -592,6 +592,16 @@
               <FileType>1</FileType>
               <FilePath>..\..\Drivers\src\mpu6050.c</FilePath>
             </File>
+            <File>
+              <FileName>ssd1306.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Drivers\src\ssd1306.c</FilePath>
+            </File>
+            <File>
+              <FileName>ssd1306_fonts.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\Drivers\src\ssd1306_fonts.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -63,15 +63,17 @@ void task1(void *pvParameters)
 	servo_attach(0, 500);
 	servo_attach(1, 2000);
 
-	MPU6050_initialize();
+	// MPU6050_initialize();
+
+	ssd1306_init();
 
 	while(1)
 	{
 
 		// I2C_readByte(0xD0, 0x75, i2c_regs);
-		acc_x = MPU6050_getAccelerationX();
-		acc_y = MPU6050_getAccelerationY();
-		acc_z = MPU6050_getAccelerationZ();
+		// acc_x = MPU6050_getAccelerationX();
+		// acc_y = MPU6050_getAccelerationY();
+		// acc_z = MPU6050_getAccelerationZ();
 
 		LOG_INFO("hello world %d %d %d", acc_x, acc_y, acc_z);
 
